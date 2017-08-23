@@ -1,24 +1,5 @@
 <!DOCTYPE html>
-<!--
-    Copyright (c) 2012-2016 Adobe Systems Incorporated. All rights reserved.
 
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-     KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
--->
 <html>
 
 <head>
@@ -26,19 +7,141 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
-    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
     <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
-    <!-- Good default declaration:
-    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
-    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
-    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
-        * Enable inline JS: add 'unsafe-inline' to default-src
-        * Enable eval(): add 'unsafe-eval' to default-src
-    * Create your own at http://cspisawesome.com
-    -->
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
 
     <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        canvas {
+            background: #000;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+
+            var oC = document.getElementById('c1');
+            var gd = oC.getContext('2d');
+            var winW = document.documentElement.clientWidth;
+            var winH = document.documentElement.clientHeight;
+            oC.width = winW;
+            oC.height = winH;
+
+            var N = 5;
+            var LEN = 50;
+
+            var aPoint = [];
+            var oldarr = [];
+            var gd = oC.getContext('2d');
+
+            function random(n, m) {
+                return parseInt(n + Math.random() * (m - n));
+            };
+            //生成5个点
+            for (var i = 0; i < N; i++) {
+                aPoint[i] = {
+                    x: random(0, winW),
+                    y: random(0, winH),
+                    vx: random(-15, 15),
+                    vy: random(-15, 15)
+
+                };
+
+            }
+            ;
+            var time=0;
+            var color="#99f"
+            setInterval(tick, 16);
+            function tick() {
+                gd.clearRect(0, 0, winW, winH);
+                for (var i = 0; i < N; i++) {
+                    aPoint[i].x += aPoint[i].vx;
+                    aPoint[i].y += aPoint[i].vy;
+                    if (aPoint[i].x < 0) {
+                        aPoint[i].x = 0;
+                        aPoint[i].vx *= (-1);
+                    }
+                    ;
+                    if (aPoint[i].y < 0) {
+                        aPoint[i].y = 0;
+                        aPoint[i].vy *= (-1);
+                    }
+                    ;
+                    if (aPoint[i].x > winW) {
+                        aPoint[i].x = winW;
+                        aPoint[i].vx *= (-1);
+                    }
+                    ;
+                    if (aPoint[i].y > winH) {
+                        aPoint[i].y = winH;
+                        aPoint[i].vy *= (-1);
+                    }
+                    ;
+
+                    drawPoint(aPoint[i]);
+
+                }
+                ;
+
+                //连线
+
+                //gd.strokeStyle = '#ff9';
+                gd.beginPath();
+                gd.moveTo(aPoint[0].x, aPoint[0].y);
+                for (var i = 1; i < aPoint.length; i++) {
+                    gd.lineTo(aPoint[i].x, aPoint[i].y);
+                }
+                gd.stroke();
+
+                var tempArr = [];
+                for (var i = 0; i < N; i++) {
+                    tempArr[i] = {
+                        x: aPoint[i].x,
+                        y: aPoint[i].y
+                    };
+                };
+                oldarr.push(tempArr);
+                if(oldarr.length>LEN){
+                    oldarr.shift();
+                }
+
+
+                for(var i=0;i<oldarr.length;i++){
+                    time++;
+                    if(time==3000){
+                        color='rgba('+random(0,255)+','+random(0,255)+','+random(0,255)+','+opacity+')';
+                        time=0;
+                    }
+                    var opacity=i/oldarr.length;
+                    gd.strokeStyle=color;
+                    gd.beginPath();
+                    gd.moveTo(oldarr[i][0].x, oldarr[i][0].y);
+                    for (var j = 1; j < aPoint.length; j++) {
+                        //gd.strokeStyle='rgba('+random(0,255)+','+random(0,255)+','+random(0,255)+','+opacity+')';
+                        gd.lineTo(oldarr[i][j].x, oldarr[i][j].y);
+                    }
+                    gd.stroke();
+                }
+
+
+            }
+
+            function drawPoint(p) {
+                var pw = 1;
+                var ph = 1;
+                gd.fillStyle = '#fff';
+                gd.fillRect(p.x, p.y, pw, ph);
+            }
+
+        }
+
+
+    </script>
     <title>Hello World</title>
 </head>
 
@@ -49,7 +152,9 @@
             <p class="event listening">Connecting to Device</p>
             <p class="event received">Device is Ready</p>
         </div>
+
     </div>
+    <canvas id="c1"></canvas>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript">
